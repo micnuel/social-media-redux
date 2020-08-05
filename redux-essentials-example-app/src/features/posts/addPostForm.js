@@ -1,40 +1,46 @@
 import  React, {useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {nanoid } from '@reduxjs/toolkit';
+import {unwrapResult} from '@reduxjs/toolkit';
 
-import {postAdded}  from './postsSlice';
+import {addNewPost}  from './postsSlice';
 import { useHistory } from 'react-router-dom';
+import { selectAllUsers } from '../users/usersSlice';
 
 export const AddPostForm = () =>{
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const[userId, setUserId] = useState('');
+    const[addRequestStatus, setAddRequestStatus] = useState('idle')
     const onTitleChange = e => setTitle(e.target.value);
     const onContentChange = e => setContent(e.target.value);
 
     const dispatch = useDispatch();
-    const users = useSelector(state=> state.users)
+    const users = useSelector(selectAllUsers)
 
-    const onPostClicked =() =>{
-        if(title && content){
-            dispatch(postAdded(
+    const canSave = [title,content,userId].every(Boolean) && 
+    addRequestStatus ==='idle';
+    const onSavePostClicked = async () =>{
+        if(canSave){
+            try{
+                setAddRequestStatus('pending');
+                const resultAction = await dispatch(
+                    addNewPost({title,content,user:userId})
+                );
+                unwrapResult(resultAction);
+                setTitle('');
+                setContent('');
+                setUserId('');
+            }
 
-                title,content
-
-                /*id:nanoid(),
-                title:title,
-                content:content*/
-            ))
-
-        setContent('')
-        setTitle('')
-
-        //How do you set the select option to empty??
-        //setUserId('')
+            catch(err){
+                console.log('Failed to save the post', err)
+            } finally{
+                setAddRequestStatus('idle');
+            }
         }
     }
 
-    const canSave = Boolean(title) &&Boolean(content) && Boolean(userId)
+
 
     const usersOption = users.map(user=>(
         <option key={user.id} value ={user.id}>
@@ -71,7 +77,7 @@ return(
             onChange ={onContentChange}
             />
 
-            <button type="button" onClick={onPostClicked}> Save Post</button>
+            <button type="button" onClick={onSavePostClicked}> Save Post</button>
         </form>
     </section>
 )

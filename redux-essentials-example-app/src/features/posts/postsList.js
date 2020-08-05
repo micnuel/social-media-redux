@@ -5,7 +5,7 @@ import {PostAuthor} from '../users/postAuthor'
 import {TimeAgo} from './timeAgo'
 import {Link} from 'react-router-dom';
 import {ReactionButtons} from './reactionButtons';
-import {selectAllPosts, fetchPosts,selectPostById} from './postsSlice';
+import {selectAllPosts, fetchPosts,selectPostById, selectPostIds} from './postsSlice';
 
 let PostExcerpt = ({ postId }) => {
     const post = useSelector((state) => selectPostById(state, postId))
@@ -27,10 +27,12 @@ let PostExcerpt = ({ postId }) => {
     )
   }
 
+  //PostExcerpt = React.memo(PostExcerpt);
+
   
 export const PostList = () =>{
     const dispatch = useDispatch();
-    
+    const orderedPostIds = useSelector(selectPostIds)
     //const posts = useSelector(state => state.posts)
     const posts = useSelector(selectAllPosts)
 
@@ -49,10 +51,10 @@ export const PostList = () =>{
         content = <div className="loaded"> Loading...</div>
 
     }else if (postStatus==='succeeded'){
-        const orderedPosts =posts.slice().sort((a,b)=>
-        b.date.localeCompare(a.date))
-        content = orderedPosts.map(post =>(
-            <PostExcerpt key ={post.id} postId ={post.id} />
+       /*  const orderedPosts =posts.slice().sort((a,b)=>
+        b.date.localeCompare(a.date)) */
+        content = orderedPostIds.map(postId =>(
+            <PostExcerpt key ={postId} postId ={postId} />
         ))
     } else if(postStatus==='failed'){
         content= <div> {error}</div>
